@@ -60,9 +60,9 @@ func (ctx *RequestCtx) ParamsBytes() []byte {
 }
 
 // ParamsUnmarshal parses request param and stores the result in the value pointed to by v.
-func (ctx *RequestCtx) ParamsUnmarshal(v interface{}) *Error {
+func (ctx *RequestCtx) ParamsUnmarshal(v interface{}) error {
 	if sonic.Unmarshal(ctx.ParamsBytes(), v) != nil {
-		return ErrInvalidParams()
+		return errorMessageInvalidParams
 	}
 
 	return nil

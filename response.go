@@ -15,29 +15,24 @@ func (ctx *RequestCtx) writeString(s string) {
 // SetError writes JSON-RPC response with error.
 //
 // It overwrites previous calls of SetResult and SetError.
-func (ctx *RequestCtx) SetError(err *Error) {
+func (ctx *RequestCtx) SetError(err error) {
 	if len(ctx.id) == 0 {
 		return
 	}
 
 	ctx.response.Reset()
 
-	if err.Data == nil {
-		writeresponseWithError(ctx.response, ctx.id, err.Code, err.Message, nil)
-		return
-	}
+	if err != nil {
+		buf := ctx.bytebufferpool.Get()
 
-	switch v := err.Data.(type) {
-	case *fastjson.Value:
-		buf := ctx.bytebufferpool.Get()
-		writeresponseWithError(ctx.response, ctx.id, err.Code, err.Message, v.MarshalTo(buf.B))
-		ctx.bytebufferpool.Put(buf)
-	case []byte:
-		writeresponseWithError(ctx.response, ctx.id, err.Code, err.Message, v)
-	default:
-		buf := ctx.bytebufferpool.Get()
-		_ = sonic.ConfigDefault.NewEncoder(buf).Encode(err.Data)
-		writeresponseWithError(ctx.response, ctx.id, err.Code, err.Message, buf.B)
+		buf.SetString(`{"jsonrpc":"2.0","error":"`)
+		buf.WriteString(err.Error())
+		buf.WriteString(`","id":`)
+		buf.WriteString(string(ctx.id))
+		buf.WriteString(`}`)
+
+		ctx.fasthttpCtx.SetBody(buf.Bytes())
+		//ctx.writeString(buf.String())
 		ctx.bytebufferpool.Put(buf)
 	}
 }
@@ -57,14 +52,25 @@ func (ctx *RequestCtx) SetResult(result interface{}) {
 	switch v := result.(type) {
 	case *fastjson.Value:
 		buf := ctx.bytebufferpool.Get()
-		writeresponseWithResult(ctx.response, ctx.id, v.MarshalTo(buf.B))
+
+		buf.SetString(`{"jsonrpc":"2.0","result":"`)
+		buf.Write(v.MarshalTo(buf.B))
+		buf.WriteString(`","id":`)
+		buf.WriteString(string(ctx.id))
+		buf.WriteString(`}`)
+		ctx.fasthttpCtx.SetBody(buf.Bytes())
+
 		ctx.bytebufferpool.Put(buf)
-	case []byte:
-		writeresponseWithResult(ctx.response, ctx.id, v)
 	default:
 		buf := ctx.bytebufferpool.Get()
+
 		_ = sonic.ConfigDefault.NewEncoder(buf).Encode(result)
-		writeresponseWithResult(ctx.response, ctx.id, buf.B)
+		buf.SetString(`{"jsonrpc":"2.0","result":"`)
+		buf.Write(buf.B)
+		buf.WriteString(`","id":`)
+		buf.WriteString(string(ctx.id))
+		buf.WriteString(`}`)
+		ctx.fasthttpCtx.SetBody(buf.Bytes())
 		ctx.bytebufferpool.Put(buf)
 	}
 }

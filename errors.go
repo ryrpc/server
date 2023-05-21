@@ -1,9 +1,19 @@
 package rysrv
 
 import (
-	"fmt"
+	"errors"
 )
 
+var (
+	renderedParseError     = `{"jsonrpc":"2.0","error":"Parse error","id":null}`
+	renderedInvalidRequest = `{"jsonrpc":"2.0","error":"Invalid Request","id":null}`
+
+	errorMessageInvalidParams  = errors.New("Invalid params")
+	errorMessageMethodNotFound = errors.New("Method not found")
+	errorMessageInternalError  = errors.New("Internal error")
+)
+
+/*
 const (
 	renderedParseError     = `{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}`
 	renderedInvalidRequest = `{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null}`
@@ -34,14 +44,10 @@ var _ error = &Error{}
 type Error struct {
 	Code    ErrorCode
 	Message string
-	Data    interface{}
 }
 
 // Error implements standard error interface.
 func (e *Error) Error() string {
-	if e.Data == nil {
-		return fmt.Sprintf("json-rpc error: [%d] %s", e.Code, e.Message)
-	}
 
 	return fmt.Sprintf("json-rpc error: [%d] %s (%+v)", e.Code, e.Message, e.Data)
 }
@@ -85,3 +91,4 @@ func ErrServerError(code ErrorCode) *Error {
 		Message: errorMessageServerError,
 	}
 }
+*/

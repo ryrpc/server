@@ -83,7 +83,7 @@ func (r *Repository) handleRequest(rCtx *RequestCtx, request *fastjson.Value) {
 
 	handler, ok := r.handlers[string(method)]
 	if !ok {
-		rCtx.SetError(errMethodNotFound())
+		rCtx.SetError(errorMessageMethodNotFound)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (r *Repository) handleRequest(rCtx *RequestCtx, request *fastjson.Value) {
 
 	defer func() {
 		if recover() != nil {
-			rCtx.SetError(ErrInternalError())
+			rCtx.SetError(errorMessageInternalError)
 		}
 	}()
 
