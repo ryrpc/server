@@ -2,7 +2,6 @@ package rysrv
 
 import (
 	"bytes"
-	"sync"
 
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
@@ -12,7 +11,10 @@ import (
 //
 // It's safe to use Repository default value.
 func NewRepository() *Repository {
-	return &Repository{}
+
+	repo := &Repository{}
+	repo.handlers = make(map[string]RequestHandler)
+	return repo
 }
 
 // Repository is a JSON-RPC 2.0 methods repository.
@@ -20,8 +22,8 @@ type Repository struct {
 	contextPool contextPool
 	parserPool  fastjson.ParserPool
 
-	handlersMu sync.RWMutex
-	handlers   map[string]RequestHandler
+	//handlersMu sync.RWMutex
+	handlers map[string]RequestHandler
 }
 
 // RequestHandler is suitable for using with fasthttp.
@@ -63,15 +65,7 @@ func (r *Repository) RequestHandler() fasthttp.RequestHandler {
 
 // Register registers new method handler.
 func (r *Repository) Register(method string, handler RequestHandler) {
-	r.handlersMu.Lock()
-
-	if r.handlers == nil {
-		r.handlers = make(map[string]RequestHandler)
-	}
-
 	r.handlers[method] = handler
-
-	r.handlersMu.Unlock()
 }
 
 func (r *Repository) handleRequest(rCtx *RequestCtx, request *fastjson.Value) {
@@ -87,9 +81,7 @@ func (r *Repository) handleRequest(rCtx *RequestCtx, request *fastjson.Value) {
 		rCtx.id = id.MarshalTo(rCtx.id)
 	}
 
-	r.handlersMu.RLock()
 	handler, ok := r.handlers[string(method)]
-	r.handlersMu.RUnlock()
 	if !ok {
 		rCtx.SetError(errMethodNotFound())
 		return
