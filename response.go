@@ -64,9 +64,10 @@ func (ctx *RequestCtx) SetResult(result interface{}) {
 	default:
 		buf := ctx.bytebufferpool.Get()
 
-		_ = sonic.ConfigDefault.NewEncoder(buf).Encode(result)
+		//_ = sonic.ConfigDefault.NewEncoder(buf).Encode(result)
+		output, _ := sonic.Marshal(result)
 		buf.SetString(`{"jsonrpc":"2.0","result":"`)
-		buf.Write(buf.B)
+		buf.Write(output)
 		buf.WriteString(`","id":`)
 		buf.WriteString(string(ctx.id))
 		buf.WriteString(`}`)
