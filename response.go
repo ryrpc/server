@@ -1,8 +1,9 @@
 package rysrv
 
 import (
+	"bytes"
+
 	"github.com/bytedance/sonic"
-	"github.com/valyala/fastjson"
 )
 
 //go:generate go get -u github.com/valyala/quicktemplate/qtc
@@ -49,29 +50,13 @@ func (ctx *RequestCtx) SetResult(result interface{}) {
 
 	ctx.response.Reset()
 
-	switch v := result.(type) {
-	case *fastjson.Value:
-		buf := ctx.bytebufferpool.Get()
+	var buf bytes.Buffer
 
-		buf.SetString(`{"jsonrpc":"2.0","result":"`)
-		buf.Write(v.MarshalTo(buf.B))
-		buf.WriteString(`","id":`)
-		buf.WriteString(string(ctx.id))
-		buf.WriteString(`}`)
-		ctx.fasthttpCtx.SetBody(buf.Bytes())
-
-		ctx.bytebufferpool.Put(buf)
-	default:
-		buf := ctx.bytebufferpool.Get()
-
-		//_ = sonic.ConfigDefault.NewEncoder(buf).Encode(result)
-		output, _ := sonic.Marshal(result)
-		buf.SetString(`{"jsonrpc":"2.0","result":"`)
-		buf.Write(output)
-		buf.WriteString(`","id":`)
-		buf.WriteString(string(ctx.id))
-		buf.WriteString(`}`)
-		ctx.fasthttpCtx.SetBody(buf.Bytes())
-		ctx.bytebufferpool.Put(buf)
-	}
+	output, _ := sonic.Marshal(result)
+	buf.WriteString(`{"jsonrpc":"2.0","result":"`)
+	buf.Write(output)
+	buf.WriteString(`","id":`)
+	buf.WriteString(string(ctx.id))
+	buf.WriteString(`}`)
+	ctx.fasthttpCtx.SetBody(buf.Bytes())
 }
