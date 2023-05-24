@@ -53,9 +53,9 @@ func (ctx *RequestCtx) SetResult(result interface{}) {
 	var buf bytes.Buffer
 
 	output, _ := sonic.Marshal(result)
-	buf.WriteString(`{"jsonrpc":"2.0","result":"`)
+	buf.WriteString(`{"jsonrpc":"2.0","result":`)
 	buf.Write(output)
-	buf.WriteString(`","id":`)
+	buf.WriteString(`,"id":`)
 	buf.WriteString(string(ctx.id))
 	buf.WriteString(`}`)
 	ctx.fasthttpCtx.SetBody(buf.Bytes())
