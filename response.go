@@ -24,9 +24,9 @@ func (ctx *RequestCtx) SetError(err error) {
 	ctx.response.Reset()
 
 	if err != nil {
-		buf := ctx.bytebufferpool.Get()
+		var buf bytes.Buffer
 
-		buf.SetString(`{"jsonrpc":"2.0","error":"`)
+		buf.WriteString(`{"jsonrpc":"2.0","error":"`)
 		buf.WriteString(err.Error())
 		buf.WriteString(`","id":`)
 		buf.WriteString(string(ctx.id))
@@ -34,7 +34,7 @@ func (ctx *RequestCtx) SetError(err error) {
 
 		ctx.fasthttpCtx.SetBody(buf.Bytes())
 		//ctx.writeString(buf.String())
-		ctx.bytebufferpool.Put(buf)
+		//ctx.bytebufferpool.Put(buf)
 	}
 }
 
