@@ -1,62 +1,57 @@
 package rysrv
 
 import (
-	"bytes"
+	"fmt"
 
-	"github.com/bytedance/sonic"
+	"github.com/fxamacker/cbor/v2"
+	"github.com/valyala/fasthttp"
 )
-
-//go:generate go get -u github.com/valyala/quicktemplate/qtc
-//go:generate qtc -dir=.
-
-func (ctx *RequestCtx) writeString(s string) {
-	_, _ = ctx.response.WriteString(s)
-}
 
 // SetError writes JSON-RPC response with error.
 //
 // It overwrites previous calls of SetResult and SetError.
-func (ctx *RequestCtx) SetError(err error) {
-	if len(ctx.id) == 0 {
+func SetError(rCtx *fasthttp.RequestCtx, err error) {
+
+	id := rCtx.UserValue("id")
+	if _, ok := id.(string); !ok {
+		fmt.Println("setResult id not found")
 		return
 	}
 
-	ctx.response.Reset()
+	args := fasthttp.AcquireArgs()
+	defer fasthttp.ReleaseArgs(args)
 
-	if err != nil {
-		var buf bytes.Buffer
+	args.Add("jsonrpc", "2.0")
+	args.Add("id", id.(string))
+	args.Add("error", err.Error())
 
-		buf.WriteString(`{"jsonrpc":"2.0","error":"`)
-		buf.WriteString(err.Error())
-		buf.WriteString(`","id":`)
-		buf.WriteString(string(ctx.id))
-		buf.WriteString(`}`)
+	qs := args.QueryString()
 
-		ctx.fasthttpCtx.SetBody(buf.Bytes())
-		//ctx.writeString(buf.String())
-		//ctx.bytebufferpool.Put(buf)
-	}
+	rCtx.SetBody(qs)
 }
 
-// SetResult writes JSON-RPC response with result.
-//
-// It overwrites previous calls of SetResult and SetError.
-//
-// result may be *fastjson.Value, []byte, or interface{} (slower).
-func (ctx *RequestCtx) SetResult(result interface{}) {
-	if len(ctx.id) == 0 {
+func SetResult(rCtx *fasthttp.RequestCtx, result interface{}) {
+
+	id := rCtx.UserValue("id")
+	if _, ok := id.(string); !ok {
+		fmt.Println("setResult id not found")
+		return
+	}
+	b, err := cbor.Marshal(result)
+	if err != nil {
+		fmt.Println("cbor.Marshal err = ", err)
 		return
 	}
 
-	ctx.response.Reset()
+	args := fasthttp.AcquireArgs()
+	defer fasthttp.ReleaseArgs(args)
 
-	var buf bytes.Buffer
+	args.Add("jsonrpc", "2.0")
+	args.Add("id", id.(string))
 
-	output, _ := sonic.Marshal(result)
-	buf.WriteString(`{"jsonrpc":"2.0","result":`)
-	buf.Write(output)
-	buf.WriteString(`,"id":`)
-	buf.WriteString(string(ctx.id))
-	buf.WriteString(`}`)
-	ctx.fasthttpCtx.SetBody(buf.Bytes())
+	args.AddBytesV("result", b)
+
+	qs := args.QueryString()
+
+	rCtx.SetBody(qs)
 }
