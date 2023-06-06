@@ -14,7 +14,7 @@ func SetError(rCtx *fasthttp.RequestCtx, err error) {
 
 	id := rCtx.UserValue("id")
 	if _, ok := id.(string); !ok {
-		fmt.Println("setResult id not found")
+		fmt.Println("SetError id not found")
 		return
 	}
 
