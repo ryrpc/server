@@ -12,22 +12,23 @@ import (
 // It overwrites previous calls of SetResult and SetError.
 func SetError(rCtx *fasthttp.RequestCtx, err error) {
 
-	id := rCtx.UserValue("id")
-	if _, ok := id.(string); !ok {
-		fmt.Println("SetError id not found")
+	/*
+		id := rCtx.UserValue("id")
+		if _, ok := id.(string); !ok {
+			fmt.Println("SetError id not found")
+			return
+		}
+	*/
+
+	args := Base{}
+	args.Err = err.Error()
+
+	b, err := args.MarshalBinary()
+	if err != nil {
+		fmt.Println("SetError args.MarshalBinary = ", err.Error())
 		return
 	}
-
-	args := fasthttp.AcquireArgs()
-	defer fasthttp.ReleaseArgs(args)
-
-	args.Add("jsonrpc", "2.0")
-	args.Add("id", id.(string))
-	args.Add("error", err.Error())
-
-	qs := args.QueryString()
-
-	rCtx.SetBody(qs)
+	rCtx.SetBody(b)
 }
 
 func SetResult(rCtx *fasthttp.RequestCtx, result interface{}) {
@@ -37,21 +38,20 @@ func SetResult(rCtx *fasthttp.RequestCtx, result interface{}) {
 		fmt.Println("setResult id not found")
 		return
 	}
-	b, err := cbor.Marshal(result)
-	if err != nil {
-		fmt.Println("cbor.Marshal err = ", err)
+	b1, err1 := cbor.Marshal(result)
+	if err1 != nil {
+		fmt.Println("cbor.Marshal err = ", err1.Error())
 		return
 	}
 
-	args := fasthttp.AcquireArgs()
-	defer fasthttp.ReleaseArgs(args)
+	args := Base{}
+	args.Err = ""
+	args.Data = b1
 
-	args.Add("jsonrpc", "2.0")
-	args.Add("id", id.(string))
-
-	args.AddBytesV("result", b)
-
-	qs := args.QueryString()
-
-	rCtx.SetBody(qs)
+	b2, err2 := args.MarshalBinary()
+	if err2 != nil {
+		fmt.Println("SetResult args.MarshalBinary = ", err2.Error())
+		return
+	}
+	rCtx.SetBody(b2)
 }
