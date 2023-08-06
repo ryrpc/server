@@ -8,21 +8,27 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// Repository is a JSON-RPC 2.0 methods repository.
+type Repository struct {
+
+	//handlersMu sync.RWMutex
+	obj      map[string]interface{}
+	handlers *router.Router
+}
+
 // NewRepository returns empty repository.
 //
 // It's safe to use Repository default value.
 func NewRepository() *Repository {
 
 	repo := &Repository{}
+	repo.obj = map[string]interface{}{}
 	repo.handlers = router.New()
 	return repo
 }
 
-// Repository is a JSON-RPC 2.0 methods repository.
-type Repository struct {
-
-	//handlersMu sync.RWMutex
-	handlers *router.Router
+func (r *Repository) Use(name string, obj interface{}) {
+	r.obj[name] = obj
 }
 
 // RequestHandler is suitable for using with fasthttp.
@@ -42,6 +48,9 @@ func (r *Repository) RequestHandler() fasthttp.RequestHandler {
 			ctx.SetUserValue("id", string(id))
 		}
 
+		for k, v := range r.obj {
+			ctx.SetUserValue(k, v)
+		}
 		r.handlers.Handler(ctx)
 	}
 }

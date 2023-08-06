@@ -11,6 +11,7 @@ import (
 // SetError writes JSON-RPC response with error.
 //
 // It overwrites previous calls of SetResult and SetError.
+
 func SetError(rCtx *fasthttp.RequestCtx, err error) {
 
 	/*
