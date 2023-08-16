@@ -1,8 +1,6 @@
 package rysrv
 
 import (
-	"errors"
-
 	"github.com/fasthttp/router"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/valyala/fasthttp"
@@ -39,15 +37,16 @@ func (r *Repository) RequestHandler() fasthttp.RequestHandler {
 			return
 		}
 
-		if ctx.PostArgs().Len() != 4 {
-			SetError(ctx, renderedParseError)
-			return
-		}
+		/*
+			if ctx.PostArgs().Len() != 4 {
+				SetError(ctx, renderedParseError)
+				return
+			}
 
-		if id := ctx.PostArgs().Peek("id"); id != nil {
-			ctx.SetUserValue("id", string(id))
-		}
-
+			if id := ctx.PostArgs().Peek("id"); id != nil {
+				ctx.SetUserValue("id", string(id))
+			}
+		*/
 		for k, v := range r.obj {
 			ctx.SetUserValue(k, v)
 		}
@@ -63,10 +62,6 @@ func (r *Repository) Register(method string, handler func(ctx *fasthttp.RequestC
 
 func Unmarshal(ctx *fasthttp.RequestCtx, v interface{}) error {
 
-	if ctx.PostArgs().Has("params") {
-
-		data := ctx.PostArgs().Peek("params")
-		return cbor.Unmarshal(data, v)
-	}
-	return errors.New("params error")
+	data := ctx.PostBody()
+	return cbor.Unmarshal(data, v)
 }
