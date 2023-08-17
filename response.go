@@ -35,11 +35,7 @@ func SetError(rCtx *fasthttp.RequestCtx, err error) {
 
 func SetResult(rCtx *fasthttp.RequestCtx, result interface{}) {
 
-	id := rCtx.UserValue("id")
-	if _, ok := id.(string); !ok {
-		fmt.Println("setResult id not found")
-		return
-	}
+	
 	b1, err1 := cbor.Marshal(result)
 	if err1 != nil {
 		fmt.Println("cbor.Marshal err = ", err1.Error())
