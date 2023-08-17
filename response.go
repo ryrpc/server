@@ -35,21 +35,27 @@ func SetError(rCtx *fasthttp.RequestCtx, err error) {
 
 func SetResult(rCtx *fasthttp.RequestCtx, result interface{}) {
 
-	
-	b1, err1 := cbor.Marshal(result)
-	if err1 != nil {
-		fmt.Println("cbor.Marshal err = ", err1.Error())
-		return
-	}
-
 	args := &Base{}
 	args.Err = ""
-	args.Data = b1
+
+	if vv, ok := result.(string); ok {
+		args.Data = []byte(vv)
+	} else if vv, ok := result.([]byte); ok {
+		args.Data = vv
+	} else {
+		b1, err1 := cbor.Marshal(result)
+		if err1 != nil {
+			fmt.Println("cbor.Marshal err = ", err1.Error())
+			return
+		}
+		args.Data = b1
+	}
 
 	b2, err2 := proto.Marshal(args)
 	if err2 != nil {
 		fmt.Println("SetResult args.MarshalBinary = ", err2.Error())
 		return
 	}
-	rCtx.SetBody(b2)
+	rctx.Response.Header.Set("Connection", "keep-alive")
+	rctx.SetBody(b2)
 }
