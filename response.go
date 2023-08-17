@@ -12,7 +12,7 @@ import (
 //
 // It overwrites previous calls of SetResult and SetError.
 
-func SetError(rCtx *fasthttp.RequestCtx, err error) {
+func SetError(fctx *fasthttp.RequestCtx, err error) {
 
 	/*
 		id := rCtx.UserValue("id")
@@ -30,10 +30,10 @@ func SetError(rCtx *fasthttp.RequestCtx, err error) {
 		fmt.Println("SetError args.MarshalBinary = ", err.Error())
 		return
 	}
-	rCtx.SetBody(b)
+	fctx.SetBody(b)
 }
 
-func SetResult(rCtx *fasthttp.RequestCtx, result interface{}) {
+func SetResult(fctx *fasthttp.RequestCtx, result interface{}) {
 
 	args := &Base{}
 	args.Err = ""
@@ -56,6 +56,6 @@ func SetResult(rCtx *fasthttp.RequestCtx, result interface{}) {
 		fmt.Println("SetResult args.MarshalBinary = ", err2.Error())
 		return
 	}
-	rctx.Response.Header.Set("Connection", "keep-alive")
-	rctx.SetBody(b2)
+	fctx.Response.Header.Set("Connection", "keep-alive")
+	fctx.SetBody(b2)
 }
