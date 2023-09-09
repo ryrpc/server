@@ -47,6 +47,9 @@ func (r *Repository) RequestHandler() fasthttp.RequestHandler {
 				ctx.SetUserValue("id", string(id))
 			}
 		*/
+		tongue := ctx.Request.Header.Peek("lang")
+		ctx.SetUserValue("lang", tongue)
+		
 		for k, v := range r.obj {
 			ctx.SetUserValue(k, v)
 		}
