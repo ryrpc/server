@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/fxamacker/cbor/v2"
-	"github.com/golang/protobuf/proto"
 	"github.com/valyala/fasthttp"
 )
 
@@ -25,7 +24,7 @@ func SetError(fctx *fasthttp.RequestCtx, err error) {
 	args := &Base{}
 	args.Err = err.Error()
 
-	b, err := proto.Marshal(args)
+	b, err := args.MarshalBinary()
 	if err != nil {
 		fmt.Println("SetError args.MarshalBinary = ", err.Error())
 		return
@@ -51,7 +50,7 @@ func SetResult(fctx *fasthttp.RequestCtx, result interface{}) {
 		args.Data = b1
 	}
 
-	b2, err2 := proto.Marshal(args)
+	b2, err2 := args.MarshalBinary()
 	if err2 != nil {
 		fmt.Println("SetResult args.MarshalBinary = ", err2.Error())
 		return
